@@ -6,4 +6,5 @@
 FROM openjdk:17
 COPY . /usr/src/myapp
 WORKDIR /usr/src/myapp
-RUN javac ./src/main/java/backend/backend/BackendApplication.java
+ENTRYPOINT ["java","-jar","build/libs/backend-0.0.1-SNAPSHOT.jar"]
+# RUN javac ./src/main/java/backend/backend/BackendApplication.java
