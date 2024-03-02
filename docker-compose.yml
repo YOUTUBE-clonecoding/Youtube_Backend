@@ -1,47 +1,92 @@
-version: '1.0'
+version: '3.8'
 
 services:
-  db:
+  database:
+    container_name: mysql_db
     image: mysql
-    restart: always
+    restart: unless-stopped
     environment:
-#      MYSQL_DATABASE: ${MYSQL_DB_NAME}
-#      MYSQL_USER: ${MYSQL_USER}
-#      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-#      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: WatchWaveDB
-      MYSQL_USER: ThirdImpact
-      MYSQL_PASSWORD: ThirdImpact123!
-      MYSQL_ROOT_PASSWORD: ThirdImpact123!
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: 1234
+      TZ: 'Asia/Seoul'
     ports:
       - "3307:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d # MySQL 설정 파일 위치
+    command:
+      - "mysqld"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
     networks:
-      - watchwave_networks
+      - watchwave_network
 
-  backend:
-    build: ./backend
-    container_name: spring
-    restart: always
-    depends_on:
-      - db
-    environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db/WatchWaveDB?characterEncoding=UTF-8"
-      MYSQL_USER: ThirdImpact
-      MYSQL_PASSWORD: ThirdImpact123!
-#      SPRING_DATASOURCE_URL: "jdbc:mysql://db/backend?characterEncoding=UTF-8"
-#      MYSQL_USER: root
-#      MYSQL_PASSWORD: 1234
+  application:
+    container_name: docker-compose-test
+    restart: on-failure
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    volumes:
-      - .:/app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_db:3306/WatchWaveDB?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "1234"
+    depends_on:
+      - database
     networks:
-      - watchwave_networks
-
-volumes:
-  mysql_data:
+      - watchwave_network
 
 networks:
-  watchwave_networks:
+  watchwave_network:
+
+#services:
+#  db:
+#    image: mysql
+#    restart: always
+#    environment:
+##      MYSQL_DATABASE: ${MYSQL_DB_NAME}
+##      MYSQL_USER: ${MYSQL_USER}
+##      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+##      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+##      MYSQL_DATABASE: WatchWaveDB
+##      MYSQL_USER: ThirdImpact
+##      MYSQL_PASSWORD: ThirdImpact123!
+##      MYSQL_ROOT_PASSWORD: ThirdImpact123!
+#      MYSQL_DATABASE: "ahwhew"
+#      MYSQL_USER: "root"
+#      MYSQL_PASSWORD: "1234"
+#      MYSQL_ROOT_PASSWORD: "1234"
+#    ports:
+#      - "3307:3306"
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    networks:
+#      - watchwave_networks
+#
+#  backend:
+#    build: ./backend
+#    container_name: spring
+#    restart: always
+#    depends_on:
+#      - db
+#    environment:
+#      SPRING_DATASOURCE_URL: "jdbc:mysql://Youtube_backend:3306/ahwhew?characterEncoding=UTF-8"
+#      MYSQL_USER: "root"
+#      MYSQL_PASSWORD: "1234"
+##      SPRING_DATASOURCE_URL: "jdbc:mysql://db/backend?characterEncoding=UTF-8"
+##      MYSQL_USER: root
+##      MYSQL_PASSWORD: 1234
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - .:/app
+#    networks:
+#      - watchwave_networks
+#
+#volumes:
+#  mysql_data:
+#
+#networks:
+#  watchwave_networks:
